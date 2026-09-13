@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 
+const API_URL =
+  import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+
 const parseTelemetryMetrics = (alertsList) => {
   return alertsList
     .filter(item => item.alert_type === "System Telemetry")
@@ -31,7 +34,7 @@ function App() {
 
   const fetchAlerts = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/alerts');
+      const response = await fetch(`${API_URL}/api/alerts`);
       const data = await response.json();
       if (data.status === 'success') {
         setAlerts(data.data);
@@ -85,7 +88,7 @@ function App() {
   const triggerThreat = async (alertType, description, severity) => {
     setSimulating(true);
     try {
-      await fetch('http://127.0.0.1:8000/api/alerts', {
+      await fetch(`${API_URL}/api/alerts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ alert_type: alertType, description: description, severity: severity }),
@@ -271,7 +274,7 @@ function App() {
               <h2 className="text-xs font-mono uppercase tracking-wider text-cyan-400 font-bold flex items-center space-x-2">
                 <span>⚡ Interactive Threat Simulator</span>
               </h2>
-              <p className="text-[10px] text-slate-400 font-mono mt-0.5">EDR test injection — trigger simulated attacks into local backend</p>
+              <p className="text-[10px] text-slate-400 font-mono mt-0.5">EDR test injection — trigger simulated attacks into backend</p>
             </div>
             <span className="text-[10px] font-mono px-2 py-0.5 bg-slate-800/60 border border-slate-700/50 text-slate-300 rounded">
               FastAPI Endpoint
