@@ -5,10 +5,9 @@ from database import init_db, log_alert_to_db, get_all_alerts
 
 app = FastAPI(title="Linux Security Monitor API")
 
-# Explicit CORS configuration for localhost and 127.0.0.1
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", "*"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -21,6 +20,7 @@ def startup_event():
 class AlertCreate(BaseModel):
     alert_type: str
     description: str
+    severity: str = "MEDIUM"  # Default fallback if omitted
 
 @app.get("/api/alerts")
 def fetch_alerts():
@@ -28,5 +28,5 @@ def fetch_alerts():
 
 @app.post("/api/alerts")
 def create_alert(alert: AlertCreate):
-    log_alert_to_db(alert.alert_type, alert.description)
+    log_alert_to_db(alert.alert_type, alert.description, alert.severity)
     return {"status": "success", "message": "Alert logged successfully"}

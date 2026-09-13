@@ -11,18 +11,21 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             timestamp TEXT,
             alert_type TEXT,
-            description TEXT
+            description TEXT,
+            severity TEXT DEFAULT 'MEDIUM'
         )
     ''')
     conn.commit()
     conn.close()
 
-def log_alert_to_db(alert_type, description):
+def log_alert_to_db(alert_type, description, severity="MEDIUM"):
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    cursor.execute("INSERT INTO alerts (timestamp, alert_type, description) VALUES (?, ?, ?)",
-                   (timestamp, alert_type, description))
+    cursor.execute(
+        "INSERT INTO alerts (timestamp, alert_type, description, severity) VALUES (?, ?, ?, ?)",
+        (timestamp, alert_type, description, severity)
+    )
     conn.commit()
     conn.close()
 

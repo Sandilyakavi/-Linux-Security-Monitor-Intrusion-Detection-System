@@ -1,22 +1,39 @@
-import React, { useState, useEffect } from 'react';
-import { ShieldAlert, Activity, Server, RefreshCw, Terminal } from 'lucide-r>
+import sqlite3
+from datetime import datetime
 
-function App() {
-  const [alerts, setAlerts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+DB_NAME = "security_monitor.db"
 
-  const fetchAlerts = async () => {
-    try {
-      const response = await fetch('http://127.0.0.1:8000/api/alerts');
-      const data = await response.json();
-      if (data.status === 'success') {
-        setAlerts(data.data);
-        setError(null);
-      }
-    } catch (err) {
-      setError('Failed to connect to FastAPI backend');
-    } finally {
-      setLoading(false);
-    }
-  };
+def init_db():
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS alerts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT,
+            alert_type TEXT,
+            description TEXT,
+            severity TEXT DEFAULT 'MEDIUM'
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+def log_alert_to_db(alert_type, description, severity="MEDIUM"):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    cursor.execute(
+        "INSERT INTO alerts (timestamp, alert_type, description, severity) VALUES (?, ?, ?, ?)",
+        (timestamp, alert_type, description, severity)
+    )
+    conn.commit()
+    conn.close()
+
+def get_all_alerts():
+    conn = sqlite3.connect(DB_NAME)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM alerts ORDER BY id DESC")
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]

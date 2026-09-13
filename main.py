@@ -5,7 +5,6 @@ from database import init_db, log_alert_to_db, get_all_alerts
 
 app = FastAPI(title="Linux Security Monitor API")
 
-# Enable CORS so your frontend dashboard can communicate with the backend seamlessly
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -14,7 +13,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize database on startup
 @app.on_event("startup")
 def startup_event():
     init_db()
@@ -22,14 +20,13 @@ def startup_event():
 class AlertCreate(BaseModel):
     alert_type: str
     description: str
+    severity: str = "MEDIUM"  # Default fallback if omitted
 
 @app.get("/api/alerts")
 def fetch_alerts():
-    """Endpoint for the web dashboard to fetch all recorded security incidents."""
     return {"status": "success", "data": get_all_alerts()}
 
 @app.post("/api/alerts")
 def create_alert(alert: AlertCreate):
-    """Endpoint for the monitor engine to push new alerts into the database."""
-    log_alert_to_db(alert.alert_type, alert.description)
+    log_alert_to_db(alert.alert_type, alert.description, alert.severity)
     return {"status": "success", "message": "Alert logged successfully"}
